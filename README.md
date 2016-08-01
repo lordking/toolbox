@@ -14,17 +14,29 @@ toolbox
 * 系统环境处理
 * struct tag标签处理
 
+引用
+```golang
+import github.com/lordking/common
+```
+
 ## 2. log
 
-日志处理
+简单的日志处理程序。样例如下：
+
+[github.com/lordking/toolbox-example/log/](http://github.com/lordking/toolbox-example/log/)
 
 ## 3. database
 
 数据库连接
 
-* mongodb
+* mongodb样例
+[github.com/lordking/toolbox-example/database/mongo](http://github.com/lordking/toolbox-example/database/mongo)
+
 * mysql
+[github.com/lordking/toolbox-example/database/mysql](http://github.com/lordking/toolbox-example/database/mysql)
+
 * redis
+[github.com/lordking/toolbox-example/database/redis](http://github.com/lordking/toolbox-example/database/redis)
 
 ## 4. http
 

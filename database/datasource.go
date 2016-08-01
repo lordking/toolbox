@@ -1,89 +1,32 @@
-package goutils
+package database
 
-import (
-	"fmt"
-)
+import "github.com/lordking/toolbox/common"
 
-var DataSourceInstance DataSource
-
-//==== DataSource config ====//
-
-type DataSourceConfig interface {
-	GetAdapter() string
+type Datasource interface {
+	NewConfig() interface{}
+	ValidateBefore() error
+	Connect() error
+	GetConnection() interface{}
+	Close() error
 }
 
-type DataSourceConfigCommon struct {
-	Adapter string `json:"adapter" osenv:"DB_ADAPTER"`
-}
+var Instance Datasource
 
-func (this *DataSourceConfigCommon) GetAdapter() string {
-	return this.Adapter
-}
+func CreateInstance(db Datasource, path string) error {
 
-//==== DataSource  ====//
+	config := db.NewConfig()
 
-type DataSource interface {
-	InitDB() error
-	GetConnection() (interface{}, error)
-	GetConfig() DataSourceConfig
-}
-
-func NewDataSource(config DataSourceConfig) (DataSource, error) {
-
-	adepter := config.GetAdapter()
-
-	if adepter == "mysql" {
-		config := config.(*MySQLConfig)
-		return NewMySQL(config)
-	} else if adepter == "mongo" {
-		config := config.(*MongoConfig)
-		return NewMongo(config)
-	} else {
-		errMsg := fmt.Sprintf("Not supported this adepter: %s", adepter)
-		return nil, NewError(ErrCodeInternal, errMsg)
-	}
-}
-
-func InitDataSource(configPath string) {
-
-	//导入配置文件
-	var data []byte
 	var err error
-	var config DataSourceConfig
 
-	config = &DataSourceConfigCommon{}
-	if configPath != "" {
-		data, err = GetFileData(configPath)
-		CheckFatal(err)
-
-		err = ReadJSON(config, data)
-		CheckFatal(err)
-	}
-	err = ReadOSEnv(config)
-	CheckFatal(err)
-
-	if config.GetAdapter() == "mysql" {
-		config = &MySQLConfig{Adapter: "mysql"}
-
-	} else if config.GetAdapter() == "mongo" {
-		config = &MongoConfig{Adapter: "mongo"}
-
-	} else {
-		errMsg := fmt.Sprintf("Not found this adapter: %s", config.GetAdapter())
-		err := NewError(ErrCodeInternal, errMsg)
-		CheckFatal(err)
+	if err := common.ReadConfig(config, "./db.json"); err != nil {
+		return err
 	}
 
-	err = ReadJSON(config, data)
-	CheckFatal(err)
+	if err := db.ValidateBefore(); err != nil {
+		return err
+	}
 
-	err = ReadOSEnv(config)
-	CheckFatal(err)
+	Instance = db
 
-	DataSourceInstance, err = NewDataSource(config)
-	CheckFatal(err)
-
-	err = DataSourceInstance.InitDB()
-	CheckFatal(err)
-
+	return err
 }

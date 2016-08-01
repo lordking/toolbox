@@ -42,15 +42,13 @@ func NewErrorWithOther(code int, err error) *Error {
 //CheckFatal 打印失败类型错误，并因此停止程序运行
 func CheckFatal(err error) {
 	if err != nil {
-		errMsg := err.Error()
-		log.Fatal("Fatal: %s", errMsg)
+		log.Fatal("Fatal: %s", err.Error())
 	}
 }
 
 //CheckError 打印普通错误
 func CheckError(err error) {
 	if err != nil {
-		errMsg := err.Error()
-		log.Error("Error: %s", errMsg)
+		log.Error("Fatal: %s", err.Error())
 	}
 }

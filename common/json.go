@@ -13,7 +13,7 @@ func ReadJSON(obj interface{}, data []byte) error {
 	}
 
 	if err := json.Unmarshal(data, &obj); err != nil {
-		return ToError(ErrCodeInternal, err)
+		return NewErrorWithOther(ErrCodeInternal, err)
 	}
 
 	if obj == nil {
@@ -28,4 +28,12 @@ func PrettyJSON(b []byte) ([]byte, error) {
 	var out bytes.Buffer
 	err := json.Indent(&out, b, "", "    ")
 	return out.Bytes(), err
+}
+
+func PrettyObject(obj interface{}) []byte {
+
+	data, _ := json.Marshal(obj)
+	result, _ := PrettyJSON(data)
+
+	return result
 }

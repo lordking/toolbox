@@ -8,59 +8,73 @@ import (
 	"github.com/lordking/toolbox/common"
 )
 
-type Config struct {
-	Url      string `json:"url" osenv:"MONGO_URL"`
-	Database string `json:"database" osenv:"MONGO_DATABASE"`
+const (
+	connTimeout = time.Second * 5
+)
+
+type (
+	Config struct {
+		Url      string `json:"url" env:"MONGO_URL"`
+		Database string `json:"database" env:"MONGO_DATABASE"`
+	}
+
+	Mongo struct {
+		Config     *Config
+		Connection *mgo.Session
+	}
+)
+
+func (m *Mongo) NewConfig() interface{} {
+	m.Config = &Config{}
+	return m.Config
 }
 
-var connTimeout = time.Second * 5
+func (m *Mongo) ValidateBefore() error {
 
-type Mongo struct {
-	session *mgo.Session
-	config  *Config
+	if m.Config.Url == "" {
+		return common.NewError(common.ErrCodeInternal, "Not found `url` in config file and `MONGO_URL` in env")
+	}
+
+	if m.Config.Database == "" {
+		return common.NewError(common.ErrCodeInternal, "Not found `database` in config file and `MONGO_DATABASE` in env")
+	}
+
+	return nil
 }
 
-func (m *Mongo) InitDB() error {
-	session, err := mgo.DialWithTimeout(m.config.Url, connTimeout)
+func (m *Mongo) Connect() error {
+	session, err := mgo.DialWithTimeout(m.Config.Url, connTimeout)
 	if err != nil {
-		return common.NewError(ErrCodeInternal, err)
+		return common.NewErrorWithOther(common.ErrCodeInternal, err)
 	}
 	defer session.Close()
 
 	session.SetMode(mgo.Monotonic, true)
 
-	m.session = session.Copy() //必须使用copy，否则return后会自动关闭
+	m.Connection = session.Copy() //必须使用copy，否则return后会自动关闭
 	return nil
 }
 
-func (m *Mongo) GetConfig() DataSourceConfig {
-	return m.config
-}
-
-func (m *Mongo) GetConnection() (interface{}, error) {
-	return m.session, nil
+func (m *Mongo) GetConnection() interface{} {
+	return m.Connection
 }
 
 func (m *Mongo) GetCollection(name string) (*mgo.Collection, error) {
 
 	if name == "" {
-		return nil, common.NewError(ErrCodeInternal, "name is empty")
+		return nil, common.NewError(common.ErrCodeInternal, "name is empty")
 	}
 
-	collection := m.session.DB(m.config.Database).C(name)
+	collection := m.Connection.DB(m.Config.Database).C(name)
 
 	return collection, nil
 }
 
-func New(config *Config) (*Mongo, error) {
+func (m *Mongo) Close() error {
+	m.Connection.Close()
+	return nil
+}
 
-	if config.Url == "" {
-		return nil, common.NewError(ErrCodeInternal, "Not found `MONGO_URL` in os env or `url` in config")
-	}
-
-	if config.Database == "" {
-		return nil, common.NewError(ErrCodeInternal, "Not found `MONGO_DATABASE` in os env or `database` in config")
-	}
-
-	return &Mongo{config: config}, nil
+func New() *Mongo {
+	return &Mongo{}
 }

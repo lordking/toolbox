@@ -1,9 +1,5 @@
 package common
 
-/**
-测试之前必须先启动http服务
-*/
-
 import (
 	"bytes"
 	"io/ioutil"
@@ -21,7 +17,7 @@ func RequestJSON(method, url string, data []byte, headers ...interface{}) ([]byt
 
 	req, err := http.NewRequest(method, url, bytes.NewReader(data))
 	if err != nil {
-		return nil, ToError(400, err)
+		return nil, NewErrorWithOther(400, err)
 	}
 	req.Header.Set("Content-Type", "application/json")
 
@@ -34,14 +30,14 @@ func RequestJSON(method, url string, data []byte, headers ...interface{}) ([]byt
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		return nil, ToError(400, err)
+		return nil, NewErrorWithOther(400, err)
 	}
 
 	defer resp.Body.Close()
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return nil, ToError(400, err)
+		return nil, NewErrorWithOther(400, err)
 	}
 
 	if resp.StatusCode == 200 {

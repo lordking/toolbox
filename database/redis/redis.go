@@ -1,7 +1,7 @@
 package redis
 
 import (
-	"time"
+	"encoding/json"
 
 	"github.com/garyburd/redigo/redis"
 
@@ -13,13 +13,18 @@ type (
 		Host        string `json:"host" env:"REDIS_HOST"`
 		Port        string `json:"port" env:"REDIS_PORT"`
 		Password    string `json:"password" env:"REDIS_PASSWORD"`
-		MaxIdle     string `json:"maxIdle" env:"REDIS_MAX_IDLE"`
-		IdleTimeout string `json:"idleTimeout" env:"REDIS_IDLE_TIMEOUT"`
+		MaxIdle     int    `json:"maxIdle" env:"REDIS_MAX_IDLE"`
+		IdleTimeout int64  `json:"idleTimeout" env:"REDIS_IDLE_TIMEOUT"`
+	}
+
+	Connection struct {
+		redis.Conn
 	}
 
 	Redis struct {
 		Config     *Config
-		Connection *redis.Pool
+		Connection redis.Conn
+		Pool       *redis.Pool
 	}
 )
 
@@ -38,15 +43,11 @@ func (m *Redis) ValidateBefore() error {
 		return common.NewError(common.ErrCodeInternal, "Not found `port` in config file and `REDIS_PORT` in env")
 	}
 
-	if m.Config.Password == "" {
-		return common.NewError(common.ErrCodeInternal, "Not found `password` in config file and `REDIS_PASSWORD` in env")
-	}
-
-	if m.Config.MaxIdle == "" {
+	if m.Config.MaxIdle == 0 {
 		return common.NewError(common.ErrCodeInternal, "Not found `maxIdle` in config file and `REDIS_MAX_IDLE` in env")
 	}
 
-	if m.Config.IdleTimeout == "" {
+	if m.Config.IdleTimeout == 0 {
 		return common.NewError(common.ErrCodeInternal, "Not found `idleTimeout` in config file and `REDIS_IDLE_TIMEOUT` in env")
 	}
 
@@ -55,8 +56,23 @@ func (m *Redis) ValidateBefore() error {
 
 func (m *Redis) Connect() error {
 
-	server := m.Config.Host + m.Config.Port
-	m.Connection = newPool(server, m.Config.Password)
+	address := m.Config.Host + m.Config.Port
+
+	c, err := redis.Dial("tcp", address)
+	if err != nil {
+		return common.NewErrorWithOther(common.ErrCodeInternal, err)
+	}
+
+	if m.Config.Password != "" {
+		_, err = c.Do("AUTH", m.Config.Password)
+
+		if err != nil {
+			c.Close()
+			return common.NewErrorWithOther(common.ErrCodeInternal, err)
+		}
+	}
+
+	m.Connection = c
 
 	return nil
 }
@@ -73,28 +89,26 @@ func (m *Redis) Close() error {
 	return nil
 }
 
-func New() *Redis {
-	return &Redis{}
+func (m *Redis) SetObject(key string, value interface{}) error {
+
+	data, _ := json.Marshal(value)
+	str := string(data)
+
+	if err := m.Connection.Send("SET", key, str); err != nil {
+		return common.NewErrorWithOther(common.ErrCodeInternal, err)
+	}
+
+	if err := m.Connection.Flush(); err != nil {
+		return common.NewErrorWithOther(common.ErrCodeInternal, err)
+	}
+
+	if _, err := m.Connection.Receive(); err != nil {
+		return common.NewErrorWithOther(common.ErrCodeInternal, err)
+	}
+
+	return nil
 }
 
-func newPool(server, password string) *redis.Pool {
-	return &redis.Pool{
-		MaxIdle:     3,
-		IdleTimeout: 240 * time.Second,
-		Dial: func() (redis.Conn, error) {
-			c, err := redis.Dial("tcp", server)
-			if err != nil {
-				return nil, err
-			}
-			if _, err := c.Do("AUTH", password); err != nil {
-				c.Close()
-				return nil, err
-			}
-			return c, err
-		},
-		TestOnBorrow: func(c redis.Conn, t time.Time) error {
-			_, err := c.Do("PING")
-			return err
-		},
-	}
+func New() *Redis {
+	return &Redis{}
 }

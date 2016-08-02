@@ -44,10 +44,6 @@ func (m *MySQL) ValidateBefore() error {
 		return common.NewError(common.ErrCodeInternal, "Not found `username` in config file and `MYSQL_USERNAME` in env")
 	}
 
-	if m.Config.Password == "" {
-		return common.NewError(common.ErrCodeInternal, "Not found `password` in config file and `MYSQL_PASSWORD` in env")
-	}
-
 	if m.Config.Database == "" {
 		return common.NewError(common.ErrCodeInternal, "Not found `database` in config file and `MYSQL_DATABASE` in env")
 	}

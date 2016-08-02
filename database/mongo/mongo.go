@@ -43,20 +43,30 @@ func (m *Mongo) ValidateBefore() error {
 }
 
 func (m *Mongo) Connect() error {
-	session, err := mgo.DialWithTimeout(m.Config.Url, connTimeout)
-	if err != nil {
+
+	var (
+		session *mgo.Session
+		err     error
+	)
+
+	if session, err = mgo.DialWithTimeout(m.Config.Url, connTimeout); err != nil {
 		return common.NewErrorWithOther(common.ErrCodeInternal, err)
 	}
-	defer session.Close()
 
 	session.SetMode(mgo.Monotonic, true)
 
-	m.Connection = session.Copy() //必须使用copy，否则return后会自动关闭
+	m.Connection = session
+
 	return nil
 }
 
 func (m *Mongo) GetConnection() interface{} {
 	return m.Connection
+}
+
+func (m *Mongo) Close() error {
+	m.Connection.Close()
+	return nil
 }
 
 func (m *Mongo) GetCollection(name string) (*mgo.Collection, error) {
@@ -68,11 +78,6 @@ func (m *Mongo) GetCollection(name string) (*mgo.Collection, error) {
 	collection := m.Connection.DB(m.Config.Database).C(name)
 
 	return collection, nil
-}
-
-func (m *Mongo) Close() error {
-	m.Connection.Close()
-	return nil
 }
 
 func New() *Mongo {

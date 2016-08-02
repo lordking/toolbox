@@ -25,11 +25,12 @@ type (
 	}
 )
 
-func (m *MySQL) GetConfig() interface{} {
+func (m *MySQL) NewConfig() interface{} {
+	m.Config = &Config{}
 	return m.Config
 }
 
-func (m *MySQL) ValidateBefore() err {
+func (m *MySQL) ValidateBefore() error {
 
 	if m.Config.Host == "" {
 		return common.NewError(common.ErrCodeInternal, "host not exist")
@@ -58,6 +59,8 @@ func (m *MySQL) ValidateBefore() err {
 	if m.Config.MaxIdleConns < 0 {
 		return common.NewError(common.ErrCodeInternal, "MaxIdleConns not exist")
 	}
+
+	return nil
 }
 
 func (m *MySQL) Connect() error {
@@ -87,10 +90,6 @@ func (m *MySQL) GetConnection() interface{} {
 	return m.Connection
 }
 
-func (m *MySQL) url() string {
-	return m.Config.Username + ":" + m.Config.Password + "@tcp(" + m.Config.Host + ":" + m.Config.Port + ")/" + m.Config.Database + "?charset=utf8"
-}
-
 func (m *MySQL) Close() error {
 	if err := m.Connection.Close(); err != nil {
 		return common.NewErrorWithOther(common.ErrCodeInternal, err)
@@ -99,6 +98,10 @@ func (m *MySQL) Close() error {
 	return nil
 }
 
+func (m *MySQL) url() string {
+	return m.Config.Username + ":" + m.Config.Password + "@tcp(" + m.Config.Host + ":" + m.Config.Port + ")/" + m.Config.Database + "?charset=utf8"
+}
+
 func New() *MySQL {
-	return &MySQL{Config: &Config{}}
+	return &MySQL{}
 }

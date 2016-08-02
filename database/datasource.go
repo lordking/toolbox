@@ -18,7 +18,7 @@ func CreateInstance(db Datasource, path string) error {
 
 	var err error
 
-	if err := common.ReadConfig(config, "./db.json"); err != nil {
+	if err := common.ReadConfig(config, path); err != nil {
 		return err
 	}
 

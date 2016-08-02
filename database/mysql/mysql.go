@@ -33,31 +33,31 @@ func (m *MySQL) NewConfig() interface{} {
 func (m *MySQL) ValidateBefore() error {
 
 	if m.Config.Host == "" {
-		return common.NewError(common.ErrCodeInternal, "host not exist")
+		return common.NewError(common.ErrCodeInternal, "Not found `host` in config file and `MYSQL_HOST` in env")
 	}
 
 	if m.Config.Port == "" {
-		return common.NewError(common.ErrCodeInternal, "port not exist")
+		return common.NewError(common.ErrCodeInternal, "Not found `port` in config file and `MYSQL_PORT` in env")
 	}
 
 	if m.Config.Username == "" {
-		return common.NewError(common.ErrCodeInternal, "username not exist")
+		return common.NewError(common.ErrCodeInternal, "Not found `username` in config file and `MYSQL_USERNAME` in env")
 	}
 
 	if m.Config.Password == "" {
-		return common.NewError(common.ErrCodeInternal, "password not exist")
+		return common.NewError(common.ErrCodeInternal, "Not found `password` in config file and `MYSQL_PASSWORD` in env")
 	}
 
 	if m.Config.Database == "" {
-		return common.NewError(common.ErrCodeInternal, "database not exist")
+		return common.NewError(common.ErrCodeInternal, "Not found `database` in config file and `MYSQL_DATABASE` in env")
 	}
 
 	if m.Config.MaxOpenConns < 0 {
-		return common.NewError(common.ErrCodeInternal, "MaxOpenConns not exist")
+		return common.NewError(common.ErrCodeInternal, "Not found `maxOpenConns` in config file and `MYSQL_MAXOPENCONNS` in env")
 	}
 
 	if m.Config.MaxIdleConns < 0 {
-		return common.NewError(common.ErrCodeInternal, "MaxIdleConns not exist")
+		return common.NewError(common.ErrCodeInternal, "Not found `maxIdleConns` in config file and `MYSQL_MAXIDLECONNS` in env")
 	}
 
 	return nil

@@ -44,14 +44,14 @@ func (h *Server) RunServ() {
 		log.Info("HTTP  on %s", h.Config.Port)
 
 		if err := http.ListenAndServe(h.Config.Port, h.Router); err != nil {
-			log.Fatal("start failure: %s", err.Error())
+			log.Fatal("http serve failure: %s", err.Error())
 		}
 	}()
 
 	log.Info("HTTPS on %s", h.Config.SSLPort)
 
 	if err := http.ListenAndServeTLS(h.Config.SSLPort, h.Config.SSLCert, h.Config.SSLKey, h.Router); err != nil {
-		log.Fatal("start failure: %s", err.Error())
+		log.Fatal("https serve failure: %s", err.Error())
 	}
 
 }

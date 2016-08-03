@@ -1,4 +1,4 @@
-package goutils
+package http
 
 import (
 	"encoding/base64"
@@ -6,83 +6,77 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"github.com/lordking/toolbox/common"
+	"github.com/lordking/toolbox/log"
 )
 
-func init() {
-	LogDebug("Init http.go")
-}
+type (
 
-// HTTPConfig http配置
-type HTTPConfig struct {
-	Port    string `json:"port"`
-	SSLPort string `json:"ssl_port"`
-	SSLCert string `json:"ssl_cert"`
-	SSLKey  string `json:"ssl_key"`
-}
+	// HTTPConfig http配置
+	Config struct {
+		Port    string `json:"port"`
+		SSLPort string `json:"ssl_port"`
+		SSLCert string `json:"ssl_cert"`
+		SSLKey  string `json:"ssl_key"`
+	}
 
-//HTTPServer http服务对象
-type HTTPServer struct {
-	Config *HTTPConfig
-	Router *gin.Engine
-}
+	//HTTPServer http服务对象
+	Server struct {
+		Config *Config
+		Router *gin.Engine
+	}
+
+	//ClassicHTTPServer 实例化的http服务对象
+	ClassicServer struct {
+		*gin.Engine
+		*Server
+	}
+)
 
 //RunServ 运行http服务
-func (h *HTTPServer) RunServ() {
+func (h *Server) RunServ() {
 
 	//设置WEB中间件
 	h.Router.Use(gin.Recovery())
 	h.Router.Use(gin.Logger())
 
 	go func() {
-		LogInfo("HTTP  on %s", h.Config.Port)
+		log.Info("HTTP  on %s", h.Config.Port)
 
 		if err := http.ListenAndServe(h.Config.Port, h.Router); err != nil {
-			LogFatal("start failure:%q", err)
+			log.Fatal("start failure: %s", err.Error())
 		}
 	}()
 
-	LogInfo("HTTPS on %s", h.Config.SSLPort)
+	log.Info("HTTPS on %s", h.Config.SSLPort)
 
 	if err := http.ListenAndServeTLS(h.Config.SSLPort, h.Config.SSLCert, h.Config.SSLKey, h.Router); err != nil {
-		LogFatal("start failure:%q", err)
+		log.Fatal("start failure: %s", err.Error())
 	}
 
 }
 
-//NewHTTPServer 新建
-func NewHTTPServer(config *HTTPConfig) *HTTPServer {
-	return &HTTPServer{
+//新建HTTP Server
+func NewServer(config *Config) *Server {
+	return &Server{
 		Config: config,
 		Router: gin.Default(),
 	}
 }
 
-//ClassicHTTPServer 实例化的http服务对象
-type ClassicHTTPServer struct {
-	*gin.Engine
-	*HTTPServer
-}
-
-//LoadHTTPConfig 导入http配置文件
-func LoadHTTPConfig(configPath string) *HTTPConfig {
-	//导入配置文件
-	data, err := GetFileData(configPath)
-	CheckFatal(err)
-
-	config := &HTTPConfig{}
-	err = ReadJSON(config, data)
-	CheckFatal(err)
-
-	return config
-}
-
 //CreateHTTPServer 创建http服务实例
-func CreateHTTPServer(configPath string) *ClassicHTTPServer {
+func CreateServer(path string) *ClassicServer {
 
-	config := LoadHTTPConfig(configPath)
-	httpServer := NewHTTPServer(config)
+	data, err := common.ReadFileData(path)
+	defer common.CheckFatal(err)
 
-	return &ClassicHTTPServer{httpServer.Router, httpServer}
+	config := &Config{}
+	err = common.ReadJSON(config, data)
+	defer common.CheckFatal(err)
+
+	httpServer := NewServer(config)
+
+	return &ClassicServer{httpServer.Router, httpServer}
 }
 
 //BasicAuth 提供http认证接口

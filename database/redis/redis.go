@@ -109,6 +109,27 @@ func (m *Redis) SetObject(key string, value interface{}) error {
 	return nil
 }
 
+func (m *Redis) GetObject(obj interface{}, key string) error {
+
+	if err := m.Connection.Send("GET", key); err != nil {
+		return common.NewErrorWithOther(common.ErrCodeInternal, err)
+	}
+
+	if err := m.Connection.Flush(); err != nil {
+		return common.NewErrorWithOther(common.ErrCodeInternal, err)
+	}
+
+	value, err := m.Connection.Receive()
+	if err != nil {
+		return common.NewErrorWithOther(common.ErrCodeInternal, err)
+	}
+	str := value.(string)
+	data := []byte(str)
+	common.ReadJSON(obj, data)
+
+	return nil
+}
+
 func New() *Redis {
 	return &Redis{}
 }

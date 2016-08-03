@@ -6,6 +6,7 @@ import (
 	"github.com/garyburd/redigo/redis"
 
 	"github.com/lordking/toolbox/common"
+	"github.com/lordking/toolbox/log"
 )
 
 type (
@@ -22,9 +23,9 @@ type (
 	}
 
 	Redis struct {
-		Config     *Config
-		Connection redis.Conn
-		Pool       *redis.Pool
+		Config       *Config
+		Connection   redis.Conn
+		ReceiveQueue chan []byte
 	}
 )
 
@@ -89,13 +90,19 @@ func (m *Redis) Close() error {
 	return nil
 }
 
-func (m *Redis) SetObject(key string, value interface{}) error {
+func (m *Redis) SetObject(key string, value interface{}, expire int) error {
 
-	data, _ := json.Marshal(value)
-	str := string(data)
+	json, _ := json.Marshal(value)
+	str := string(json)
 
 	if err := m.Connection.Send("SET", key, str); err != nil {
 		return common.NewErrorWithOther(common.ErrCodeInternal, err)
+	}
+
+	if expire > 0 {
+		if err := m.Connection.Send("EXPIRE", key, expire); err != nil {
+			return common.NewErrorWithOther(common.ErrCodeInternal, err)
+		}
 	}
 
 	if err := m.Connection.Flush(); err != nil {
@@ -123,11 +130,75 @@ func (m *Redis) GetObject(obj interface{}, key string) error {
 	if err != nil {
 		return common.NewErrorWithOther(common.ErrCodeInternal, err)
 	}
-	str := value.(string)
-	data := []byte(str)
-	common.ReadJSON(obj, data)
+
+	common.ReadJSON(obj, value.([]byte))
 
 	return nil
+}
+
+func (m *Redis) DeleteObject(key string) error {
+
+	if err := m.Connection.Send("DEL", key); err != nil {
+		return common.NewErrorWithOther(common.ErrCodeInternal, err)
+	}
+
+	if err := m.Connection.Flush(); err != nil {
+		return common.NewErrorWithOther(common.ErrCodeInternal, err)
+	}
+
+	_, err := m.Connection.Receive()
+	if err != nil {
+		return common.NewErrorWithOther(common.ErrCodeInternal, err)
+	}
+
+	return nil
+}
+
+func (m *Redis) PublishObject(channel string, value interface{}) error {
+
+	json, _ := json.Marshal(value)
+	str := string(json)
+
+	if err := m.Connection.Send("PUBLISH", channel, str); err != nil {
+		return common.NewErrorWithOther(common.ErrCodeInternal, err)
+	}
+
+	if err := m.Connection.Flush(); err != nil {
+		return common.NewErrorWithOther(common.ErrCodeInternal, err)
+	}
+
+	_, err := m.Connection.Receive()
+	if err != nil {
+		return common.NewErrorWithOther(common.ErrCodeInternal, err)
+	}
+
+	return nil
+}
+
+func (m *Redis) Subscribe(channel string) (redis.PubSubConn, error) {
+
+	psc := redis.PubSubConn{Conn: m.Connection}
+	err := psc.Subscribe(channel)
+
+	return psc, err
+}
+
+func (m *Redis) Receive(psc redis.PubSubConn) {
+
+	m.ReceiveQueue = make(chan []byte)
+	go func() {
+		for {
+			switch v := psc.Receive().(type) {
+			case redis.Message:
+				m.ReceiveQueue <- v.Data
+			case redis.Subscription:
+				log.Debug("%s subscribe %d", v.Channel, v.Count)
+			case error:
+				log.Error("Error: %s", v.Error())
+			}
+		}
+	}()
+
 }
 
 func New() *Redis {

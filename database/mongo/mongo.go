@@ -55,7 +55,7 @@ func (m *Mongo) Connect() error {
 
 	session.SetMode(mgo.Monotonic, true)
 
-	m.Connection = session
+	m.Connection = session.Copy()
 
 	return nil
 }

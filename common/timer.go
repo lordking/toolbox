@@ -15,11 +15,9 @@ func (t *Timer) Start() {
 
 	t.ticker = time.NewTicker(time.Second * 1)
 
-	fmt.Print("xx")
-
 	go func() {
 		for _ = range t.ticker.C {
-			fmt.Printf("ticked at %v", time.Now())
+			fmt.Printf("ticked at %v\n", time.Now())
 		}
 	}()
 }

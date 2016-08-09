@@ -13,20 +13,8 @@ type Database interface {
 func Configure(db Database, path string) error {
 
 	if _, ok := db.(Database); !ok {
-		return common.NewError(common.ErrCodeInternal, "Not found NewConfig")
+		return common.NewError(common.ErrCodeInternal, "Not found interface")
 	}
-	// if _, ok := db.(ValidateBefore()); !ok {
-	// 	return common.NewError(common.ErrCodeInternal, "Not found ValidateBefore")
-	// }
-	// if _, ok := db.(Connect()); !ok {
-	// 	return common.NewError(common.ErrCodeInternal, "Not found Connect")
-	// }
-	// if _, ok := db.(GetConnection()); !ok {
-	// 	return common.NewError(common.ErrCodeInternal, "Not found GetConnection")
-	// }
-	// if _, ok := db.(Close()); !ok {
-	// 	return common.NewError(common.ErrCodeInternal, "Not found Close")
-	// }
 
 	config := db.NewConfig()
 

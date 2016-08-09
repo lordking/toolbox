@@ -12,10 +12,6 @@ type Database interface {
 
 func Configure(db Database, path string) error {
 
-	if _, ok := db.(Database); !ok {
-		return common.NewError(common.ErrCodeInternal, "Not found interface")
-	}
-
 	config := db.NewConfig()
 
 	var err error

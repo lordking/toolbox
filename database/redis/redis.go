@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 
 	"github.com/garyburd/redigo/redis"
-
 	"github.com/lordking/toolbox/common"
 	"github.com/lordking/toolbox/log"
 )
@@ -18,37 +17,37 @@ type (
 		IdleTimeout int64  `json:"idleTimeout" env:"REDIS_IDLE_TIMEOUT"`
 	}
 
-	Connection struct {
+	conn struct {
 		redis.Conn
 	}
 
 	Redis struct {
-		Config       *Config
-		Connection   redis.Conn
 		ReceiveQueue chan []byte
+		config       *Config
+		conn         redis.Conn
 	}
 )
 
 func (m *Redis) NewConfig() interface{} {
-	m.Config = &Config{}
-	return m.Config
+	m.config = &Config{}
+	return m.config
 }
 
 func (m *Redis) ValidateBefore() error {
 
-	if m.Config.Host == "" {
+	if m.config.Host == "" {
 		return common.NewError(common.ErrCodeInternal, "Not found `host` in config file and `REDIS_HOST` in env")
 	}
 
-	if m.Config.Port == "" {
+	if m.config.Port == "" {
 		return common.NewError(common.ErrCodeInternal, "Not found `port` in config file and `REDIS_PORT` in env")
 	}
 
-	if m.Config.MaxIdle == 0 {
+	if m.config.MaxIdle == 0 {
 		return common.NewError(common.ErrCodeInternal, "Not found `maxIdle` in config file and `REDIS_MAX_IDLE` in env")
 	}
 
-	if m.Config.IdleTimeout == 0 {
+	if m.config.IdleTimeout == 0 {
 		return common.NewError(common.ErrCodeInternal, "Not found `idleTimeout` in config file and `REDIS_IDLE_TIMEOUT` in env")
 	}
 
@@ -57,15 +56,15 @@ func (m *Redis) ValidateBefore() error {
 
 func (m *Redis) Connect() error {
 
-	address := m.Config.Host + m.Config.Port
+	address := m.config.Host + m.config.Port
 
 	c, err := redis.Dial("tcp", address)
 	if err != nil {
 		return common.NewErrorWithOther(common.ErrCodeInternal, err)
 	}
 
-	if m.Config.Password != "" {
-		_, err = c.Do("AUTH", m.Config.Password)
+	if m.config.Password != "" {
+		_, err = c.Do("AUTH", m.config.Password)
 
 		if err != nil {
 			c.Close()
@@ -73,17 +72,17 @@ func (m *Redis) Connect() error {
 		}
 	}
 
-	m.Connection = c
+	m.conn = c
 
 	return nil
 }
 
 func (m *Redis) GetConnection() interface{} {
-	return m.Connection
+	return m.conn
 }
 
 func (m *Redis) Close() error {
-	if err := m.Connection.Close(); err != nil {
+	if err := m.conn.Close(); err != nil {
 		return common.NewErrorWithOther(common.ErrCodeInternal, err)
 	}
 
@@ -95,21 +94,21 @@ func (m *Redis) SetObject(key string, value interface{}, expire int) error {
 	json, _ := json.Marshal(value)
 	str := string(json)
 
-	if err := m.Connection.Send("SET", key, str); err != nil {
+	if err := m.conn.Send("SET", key, str); err != nil {
 		return common.NewErrorWithOther(common.ErrCodeInternal, err)
 	}
 
 	if expire > 0 {
-		if err := m.Connection.Send("EXPIRE", key, expire); err != nil {
+		if err := m.conn.Send("EXPIRE", key, expire); err != nil {
 			return common.NewErrorWithOther(common.ErrCodeInternal, err)
 		}
 	}
 
-	if err := m.Connection.Flush(); err != nil {
+	if err := m.conn.Flush(); err != nil {
 		return common.NewErrorWithOther(common.ErrCodeInternal, err)
 	}
 
-	if _, err := m.Connection.Receive(); err != nil {
+	if _, err := m.conn.Receive(); err != nil {
 		return common.NewErrorWithOther(common.ErrCodeInternal, err)
 	}
 
@@ -118,15 +117,15 @@ func (m *Redis) SetObject(key string, value interface{}, expire int) error {
 
 func (m *Redis) GetObject(obj interface{}, key string) error {
 
-	if err := m.Connection.Send("GET", key); err != nil {
+	if err := m.conn.Send("GET", key); err != nil {
 		return common.NewErrorWithOther(common.ErrCodeInternal, err)
 	}
 
-	if err := m.Connection.Flush(); err != nil {
+	if err := m.conn.Flush(); err != nil {
 		return common.NewErrorWithOther(common.ErrCodeInternal, err)
 	}
 
-	value, err := m.Connection.Receive()
+	value, err := m.conn.Receive()
 	if err != nil {
 		return common.NewErrorWithOther(common.ErrCodeInternal, err)
 	}
@@ -138,15 +137,15 @@ func (m *Redis) GetObject(obj interface{}, key string) error {
 
 func (m *Redis) DeleteObject(key string) error {
 
-	if err := m.Connection.Send("DEL", key); err != nil {
+	if err := m.conn.Send("DEL", key); err != nil {
 		return common.NewErrorWithOther(common.ErrCodeInternal, err)
 	}
 
-	if err := m.Connection.Flush(); err != nil {
+	if err := m.conn.Flush(); err != nil {
 		return common.NewErrorWithOther(common.ErrCodeInternal, err)
 	}
 
-	_, err := m.Connection.Receive()
+	_, err := m.conn.Receive()
 	if err != nil {
 		return common.NewErrorWithOther(common.ErrCodeInternal, err)
 	}
@@ -159,15 +158,15 @@ func (m *Redis) PublishObject(channel string, value interface{}) error {
 	json, _ := json.Marshal(value)
 	str := string(json)
 
-	if err := m.Connection.Send("PUBLISH", channel, str); err != nil {
+	if err := m.conn.Send("PUBLISH", channel, str); err != nil {
 		return common.NewErrorWithOther(common.ErrCodeInternal, err)
 	}
 
-	if err := m.Connection.Flush(); err != nil {
+	if err := m.conn.Flush(); err != nil {
 		return common.NewErrorWithOther(common.ErrCodeInternal, err)
 	}
 
-	_, err := m.Connection.Receive()
+	_, err := m.conn.Receive()
 	if err != nil {
 		return common.NewErrorWithOther(common.ErrCodeInternal, err)
 	}
@@ -177,7 +176,7 @@ func (m *Redis) PublishObject(channel string, value interface{}) error {
 
 func (m *Redis) Subscribe(channel string) (redis.PubSubConn, error) {
 
-	psc := redis.PubSubConn{Conn: m.Connection}
+	psc := redis.PubSubConn{Conn: m.conn}
 	err := psc.Subscribe(channel)
 
 	return psc, err

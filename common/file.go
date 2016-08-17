@@ -12,7 +12,7 @@ func ReadFileData(path string) ([]byte, error) {
 	)
 
 	if data, err = ioutil.ReadFile(path); err != nil {
-		return nil, NewErrorWithOther(ErrCodeInternal, err)
+		return nil, NewError(ErrCodeInternal, err.Error())
 	}
 
 	return data, nil

@@ -13,7 +13,7 @@ func ReadJSON(obj interface{}, data []byte) error {
 	}
 
 	if err := json.Unmarshal(data, &obj); err != nil {
-		return NewErrorWithOther(ErrCodeInternal, err)
+		return NewError(ErrCodeInternal, err.Error())
 	}
 
 	if obj == nil {

@@ -41,7 +41,7 @@ func (m *SQLite) Connect() error {
 	)
 
 	if db, err = sql.Open("sqlite3", m.Config.File); err != nil {
-		return common.NewErrorWithOther(common.ErrCodeInternal, err)
+		return common.NewError(common.ErrCodeInternal, err.Error())
 	}
 
 	m.Connection = db
@@ -55,7 +55,7 @@ func (m *SQLite) GetConnection() interface{} {
 
 func (m *SQLite) Close() error {
 	if err := m.Connection.Close(); err != nil {
-		return common.NewErrorWithOther(common.ErrCodeInternal, err)
+		return common.NewError(common.ErrCodeInternal, err.Error())
 	}
 
 	return nil

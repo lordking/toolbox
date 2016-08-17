@@ -13,11 +13,11 @@ func UpdateJsonWith(obj interface{}) (map[string]interface{}, error) {
 	data, err := json.Marshal(obj)
 
 	if err != nil {
-		return nil, common.NewErrorWithOther(common.ErrCodeInternal, err)
+		return nil, common.NewError(common.ErrCodeInternal, err.Error())
 	}
 	err = json.Unmarshal(data, &updateJson)
 	if err != nil {
-		return nil, common.NewErrorWithOther(common.ErrCodeInternal, err)
+		return nil, common.NewError(common.ErrCodeInternal, err.Error())
 	}
 
 	for key, value := range updateJson {

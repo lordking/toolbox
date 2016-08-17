@@ -30,7 +30,7 @@ func RequestJSON(method, url string, data []byte, headers ...interface{}) ([]byt
 
 	req, err := http.NewRequest(method, url, bytes.NewReader(data))
 	if err != nil {
-		return nil, common.NewErrorWithOther(400, err)
+		return nil, common.NewError(400, err.Error())
 	}
 	req.Header.Set("Content-Type", "application/json")
 
@@ -43,14 +43,14 @@ func RequestJSON(method, url string, data []byte, headers ...interface{}) ([]byt
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		return nil, common.NewErrorWithOther(400, err)
+		return nil, common.NewError(400, err.Error())
 	}
 
 	defer resp.Body.Close()
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return nil, common.NewErrorWithOther(400, err)
+		return nil, common.NewError(400, err.Error())
 	}
 
 	if resp.StatusCode == 200 {

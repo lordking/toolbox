@@ -50,7 +50,7 @@ func (m *Mongo) Connect() error {
 	)
 
 	if session, err = mgo.DialWithTimeout(m.Config.Url, connTimeout); err != nil {
-		return common.NewErrorWithOther(common.ErrCodeInternal, err)
+		return common.NewError(common.ErrCodeInternal, err.Error())
 	}
 
 	session.SetMode(mgo.Monotonic, true)

@@ -67,14 +67,14 @@ func (m *MySQL) Connect() error {
 	)
 
 	if db, err = sql.Open("mysql", m.url()); err != nil {
-		return common.NewErrorWithOther(common.ErrCodeInternal, err)
+		return common.NewError(common.ErrCodeInternal, err.Error())
 	}
 
 	db.SetMaxOpenConns(m.Config.MaxOpenConns) //最大打开的连接数，默认值为0表示不限制
 	db.SetMaxIdleConns(m.Config.MaxIdleConns) //闲置的连接数
 
 	if err = db.Ping(); err != nil {
-		return common.NewErrorWithOther(common.ErrCodeInternal, err)
+		return common.NewError(common.ErrCodeInternal, err.Error())
 	}
 
 	m.Connection = db
@@ -88,7 +88,7 @@ func (m *MySQL) GetConnection() interface{} {
 
 func (m *MySQL) Close() error {
 	if err := m.Connection.Close(); err != nil {
-		return common.NewErrorWithOther(common.ErrCodeInternal, err)
+		return common.NewError(common.ErrCodeInternal, err.Error())
 	}
 
 	return nil

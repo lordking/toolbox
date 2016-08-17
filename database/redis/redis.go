@@ -60,7 +60,7 @@ func (m *Redis) Connect() error {
 
 	c, err := redis.Dial("tcp", address)
 	if err != nil {
-		return common.NewErrorWithOther(common.ErrCodeInternal, err)
+		return common.NewError(common.ErrCodeInternal, err.Error())
 	}
 
 	if m.config.Password != "" {
@@ -68,7 +68,7 @@ func (m *Redis) Connect() error {
 
 		if err != nil {
 			c.Close()
-			return common.NewErrorWithOther(common.ErrCodeInternal, err)
+			return common.NewError(common.ErrCodeInternal, err.Error())
 		}
 	}
 
@@ -83,7 +83,7 @@ func (m *Redis) GetConnection() interface{} {
 
 func (m *Redis) Close() error {
 	if err := m.conn.Close(); err != nil {
-		return common.NewErrorWithOther(common.ErrCodeInternal, err)
+		return common.NewError(common.ErrCodeInternal, err.Error())
 	}
 
 	return nil
@@ -95,21 +95,21 @@ func (m *Redis) SetObject(key string, value interface{}, expire int) error {
 	str := string(json)
 
 	if err := m.conn.Send("SET", key, str); err != nil {
-		return common.NewErrorWithOther(common.ErrCodeInternal, err)
+		return common.NewError(common.ErrCodeInternal, err.Error())
 	}
 
 	if expire > 0 {
 		if err := m.conn.Send("EXPIRE", key, expire); err != nil {
-			return common.NewErrorWithOther(common.ErrCodeInternal, err)
+			return common.NewError(common.ErrCodeInternal, err.Error())
 		}
 	}
 
 	if err := m.conn.Flush(); err != nil {
-		return common.NewErrorWithOther(common.ErrCodeInternal, err)
+		return common.NewError(common.ErrCodeInternal, err.Error())
 	}
 
 	if _, err := m.conn.Receive(); err != nil {
-		return common.NewErrorWithOther(common.ErrCodeInternal, err)
+		return common.NewError(common.ErrCodeInternal, err.Error())
 	}
 
 	return nil
@@ -118,16 +118,16 @@ func (m *Redis) SetObject(key string, value interface{}, expire int) error {
 func (m *Redis) GetObject(obj interface{}, key string) error {
 
 	if err := m.conn.Send("GET", key); err != nil {
-		return common.NewErrorWithOther(common.ErrCodeInternal, err)
+		return common.NewError(common.ErrCodeInternal, err.Error())
 	}
 
 	if err := m.conn.Flush(); err != nil {
-		return common.NewErrorWithOther(common.ErrCodeInternal, err)
+		return common.NewError(common.ErrCodeInternal, err.Error())
 	}
 
 	value, err := m.conn.Receive()
 	if err != nil {
-		return common.NewErrorWithOther(common.ErrCodeInternal, err)
+		return common.NewError(common.ErrCodeInternal, err.Error())
 	}
 
 	common.ReadJSON(obj, value.([]byte))
@@ -138,16 +138,16 @@ func (m *Redis) GetObject(obj interface{}, key string) error {
 func (m *Redis) DeleteObject(key string) error {
 
 	if err := m.conn.Send("DEL", key); err != nil {
-		return common.NewErrorWithOther(common.ErrCodeInternal, err)
+		return common.NewError(common.ErrCodeInternal, err.Error())
 	}
 
 	if err := m.conn.Flush(); err != nil {
-		return common.NewErrorWithOther(common.ErrCodeInternal, err)
+		return common.NewError(common.ErrCodeInternal, err.Error())
 	}
 
 	_, err := m.conn.Receive()
 	if err != nil {
-		return common.NewErrorWithOther(common.ErrCodeInternal, err)
+		return common.NewError(common.ErrCodeInternal, err.Error())
 	}
 
 	return nil
@@ -159,16 +159,16 @@ func (m *Redis) PublishObject(channel string, value interface{}) error {
 	str := string(json)
 
 	if err := m.conn.Send("PUBLISH", channel, str); err != nil {
-		return common.NewErrorWithOther(common.ErrCodeInternal, err)
+		return common.NewError(common.ErrCodeInternal, err.Error())
 	}
 
 	if err := m.conn.Flush(); err != nil {
-		return common.NewErrorWithOther(common.ErrCodeInternal, err)
+		return common.NewError(common.ErrCodeInternal, err.Error())
 	}
 
 	_, err := m.conn.Receive()
 	if err != nil {
-		return common.NewErrorWithOther(common.ErrCodeInternal, err)
+		return common.NewError(common.ErrCodeInternal, err.Error())
 	}
 
 	return nil

@@ -7,23 +7,26 @@ import (
 )
 
 const (
-	ErrCodedParams  = 403 //请求参数错误
-	ErrCodeNotFound = 404 //没有发现
-	ErrCodeInternal = 500 //内部错误
+	//ErrCodedParams 请求参数错误
+	ErrCodedParams = 403
+	//ErrCodeNotFound 没有发现
+	ErrCodeNotFound = 404
+	//ErrCodeInternal 内部错误
+	ErrCodeInternal = 500
 )
 
-//自定义错误
+//Error 自定义错误
 type Error struct {
 	Code    int    `json:"status"`
 	Message string `json:"error"`
 }
 
-//继承错误输出接口
+//Error 继承错误输出接口
 func (e *Error) Error() string {
 	return fmt.Sprintf("\n code: %d \n error: %s", e.Code, e.Message)
 }
 
-//生成新的自定义错误对象
+//NewError 生成新的自定义错误对象
 func NewError(code int, message string) *Error {
 	return &Error{
 		Code:    code,

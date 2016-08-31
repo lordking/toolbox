@@ -23,6 +23,21 @@ func ReadJSON(obj interface{}, data []byte) error {
 	return nil
 }
 
+//JSONObjectConvert 将一个对象转换成序列化后的另一个对象
+func JSONObjectConvert(obj1 interface{}, obj2 interface{}) error {
+
+	data, err := json.Marshal(obj1)
+	if err != nil {
+		return NewError(ErrCodeInternal, err.Error())
+	}
+
+	if err := json.Unmarshal(data, obj2); err != nil {
+		return NewError(ErrCodeInternal, err.Error())
+	}
+
+	return nil
+}
+
 //PrettyJSON 打印缩进后的json内容
 func PrettyJSON(b []byte) ([]byte, error) {
 	var out bytes.Buffer

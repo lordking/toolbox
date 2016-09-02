@@ -56,7 +56,7 @@ func (h *Server) RunServ() {
 
 }
 
-//新建HTTP Server
+//NewServer 新建HTTP Server
 func NewServer(config *Config) *Server {
 	return &Server{
 		Config: config,
@@ -64,10 +64,10 @@ func NewServer(config *Config) *Server {
 	}
 }
 
-//CreateHTTPServer 创建http服务实例
-func CreateServer(path string) *ClassicServer {
+//CreateServer 创建http服务实例
+func CreateServer(configPath string) *ClassicServer {
 
-	data, err := common.ReadFileData(path)
+	data, err := common.ReadFileData(configPath)
 	defer common.CheckFatal(err)
 
 	config := &Config{}
@@ -77,6 +77,25 @@ func CreateServer(path string) *ClassicServer {
 	httpServer := NewServer(config)
 
 	return &ClassicServer{httpServer.Router, httpServer}
+}
+
+//CreateServer2 创建http服务实例
+func CreateServer2(configPath, certPath, keyPath string) *ClassicServer {
+	data, err := common.ReadFileData(configPath)
+	defer common.CheckFatal(err)
+
+	config := &Config{}
+	err = common.ReadJSON(config, data)
+	defer common.CheckFatal(err)
+
+	config.SSLCert = certPath
+	config.SSLKey = keyPath
+	httpServer := NewServer(config)
+
+	return &ClassicServer{
+		httpServer.Router,
+		httpServer,
+	}
 }
 
 //BasicAuth 提供http认证接口

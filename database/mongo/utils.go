@@ -2,7 +2,6 @@ package mongo
 
 import (
 	"encoding/json"
-	"fmt"
 	"reflect"
 
 	"github.com/lordking/toolbox/common"
@@ -27,10 +26,8 @@ func UpdateJsonWith(obj interface{}) (map[string]interface{}, error) {
 		if value != nil {
 
 			typeName := reflect.TypeOf(value).Name()
-
 			switch typeName {
 			case "string":
-				fmt.Printf("%s, %s, %s\n", key, typeName, value)
 				if value.(string) == "" {
 					delete(updateJson, key)
 				}

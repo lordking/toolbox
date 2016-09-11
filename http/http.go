@@ -99,31 +99,37 @@ func CreateServer2(configPath, certPath, keyPath string) *ClassicServer {
 }
 
 //BasicAuth 提供http认证接口
-func BasicAuth(authfn func(string, string) error) gin.HandlerFunc {
+func BasicAuth(authfn func(c *gin.Context, username string, password string) error) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		req := c.Request
 
 		auth := req.Header.Get("Authorization")
-		if len(auth) < 6 || auth[:6] != "Basic " {
-			JSONResponse(c, http.StatusUnauthorized, "not found token")
+
+		var tokens []string
+		if auth[:7] == "OAuth2 " {
+			tokens = strings.SplitN(auth[7:], ":", 2)
+
+		} else if auth[:6] != "Basic " {
+			b, err := base64.StdEncoding.DecodeString(auth[6:])
+			if err != nil {
+				JSONResponse(c, http.StatusUnauthorized, "wrong token format")
+				c.Abort()
+				return
+			}
+			tokens = strings.SplitN(string(b), ":", 2)
+		} else {
+			JSONResponse(c, http.StatusUnauthorized, "Not found authorization")
 			c.Abort()
 			return
 		}
-		b, err := base64.StdEncoding.DecodeString(auth[6:])
-		if err != nil {
-			JSONResponse(c, http.StatusUnauthorized, "wrong token format")
-			c.Abort()
-			return
-		}
-		tokens := strings.SplitN(string(b), ":", 2)
+
 		if len(tokens) != 2 {
 			JSONResponse(c, http.StatusUnauthorized, "wrong token formart")
 			c.Abort()
 			return
 		}
 
-		err = authfn(tokens[0], tokens[1])
-		if err != nil {
+		if err := authfn(c, tokens[0], tokens[1]); err != nil {
 			JSONResponse(c, http.StatusUnauthorized, err)
 			c.Abort()
 			return

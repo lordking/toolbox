@@ -56,6 +56,21 @@ func (h *Server) RunServ() {
 
 }
 
+//RunServOnHTTP 运行http服务
+func (h *Server) RunServOnHTTP() {
+
+	//设置WEB中间件
+	h.Router.Use(gin.Recovery())
+	h.Router.Use(gin.Logger())
+
+	log.Info("HTTP  on %s", h.Config.Port)
+
+	if err := http.ListenAndServe(h.Config.Port, h.Router); err != nil {
+		log.Fatal("http serve failure: %s", err.Error())
+	}
+
+}
+
 //NewServer 新建HTTP Server
 func NewServer(config *Config) *Server {
 	return &Server{
@@ -99,38 +114,50 @@ func CreateServer2(configPath, certPath, keyPath string) *ClassicServer {
 }
 
 //BasicAuth 提供http认证接口
-func BasicAuth(authfn func(c *gin.Context, username string, password string) error) gin.HandlerFunc {
+func BasicAuth(authfn func(*gin.Context, string, string, string) error) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		req := c.Request
 
-		auth := req.Header.Get("Authorization")
+		authorization := req.Header.Get("Authorization")
 
-		var tokens []string
-		if auth[:7] == "OAuth2 " {
-			tokens = strings.SplitN(auth[7:], ":", 2)
-
-		} else if auth[:6] != "Basic " {
-			b, err := base64.StdEncoding.DecodeString(auth[6:])
-			if err != nil {
-				JSONResponse(c, http.StatusUnauthorized, "wrong token format")
-				c.Abort()
-				return
-			}
-			tokens = strings.SplitN(string(b), ":", 2)
-		} else {
+		if authorization == "" {
 			JSONResponse(c, http.StatusUnauthorized, "Not found authorization")
 			c.Abort()
 			return
 		}
 
-		if len(tokens) != 2 {
+		ss := make([]string, 2)
+		var typ string
+		if strings.Compare(authorization[:6], "Basic ") == 0 {
+			b, err := base64.StdEncoding.DecodeString(authorization[6:])
+			if err != nil {
+				JSONResponse(c, http.StatusUnauthorized, "wrong token format")
+				c.Abort()
+				return
+			}
+			ss = strings.SplitN(string(b), ":", 2)
+			typ = "Basic"
+
+		} else if strings.Compare(authorization[:7], "Bearer ") == 0 {
+
+			ss[0] = authorization[7:]
+			ss[1] = ""
+			typ = "Bearer"
+
+		} else {
+			JSONResponse(c, http.StatusUnauthorized, "Not support authorization")
+			c.Abort()
+			return
+		}
+
+		if len(ss) != 2 {
 			JSONResponse(c, http.StatusUnauthorized, "wrong token formart")
 			c.Abort()
 			return
 		}
 
-		if err := authfn(c, tokens[0], tokens[1]); err != nil {
-			JSONResponse(c, http.StatusUnauthorized, err)
+		if err := authfn(c, typ, ss[0], ss[1]); err != nil {
+			JSONResponse(c, http.StatusUnauthorized, err.Error())
 			c.Abort()
 			return
 		}

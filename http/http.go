@@ -1,9 +1,7 @@
 package http
 
 import (
-	"encoding/base64"
 	"net/http"
-	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/lordking/toolbox/common"
@@ -114,7 +112,7 @@ func CreateServer2(configPath, certPath, keyPath string) *ClassicServer {
 }
 
 //BasicAuth 提供http认证接口
-func BasicAuth(authfn func(*gin.Context, string, string, string) error) gin.HandlerFunc {
+func BasicAuth(authfn func(*gin.Context, string) error) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		req := c.Request
 
@@ -126,37 +124,7 @@ func BasicAuth(authfn func(*gin.Context, string, string, string) error) gin.Hand
 			return
 		}
 
-		ss := make([]string, 2)
-		var typ string
-		if strings.Compare(authorization[:6], "Basic ") == 0 {
-			b, err := base64.StdEncoding.DecodeString(authorization[6:])
-			if err != nil {
-				JSONResponse(c, http.StatusUnauthorized, "wrong token format")
-				c.Abort()
-				return
-			}
-			ss = strings.SplitN(string(b), ":", 2)
-			typ = "Basic"
-
-		} else if strings.Compare(authorization[:7], "Bearer ") == 0 {
-
-			ss[0] = authorization[7:]
-			ss[1] = ""
-			typ = "Bearer"
-
-		} else {
-			JSONResponse(c, http.StatusUnauthorized, "Not support authorization")
-			c.Abort()
-			return
-		}
-
-		if len(ss) != 2 {
-			JSONResponse(c, http.StatusUnauthorized, "wrong token formart")
-			c.Abort()
-			return
-		}
-
-		if err := authfn(c, typ, ss[0], ss[1]); err != nil {
+		if err := authfn(c, authorization); err != nil {
 			JSONResponse(c, http.StatusUnauthorized, err.Error())
 			c.Abort()
 			return

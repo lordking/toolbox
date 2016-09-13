@@ -17,7 +17,7 @@ func RandInt64(min, max int64) int64 {
 
 //RandString 生成随机字符串
 func RandString(length int) []byte {
-	option := "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	option := "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
 	optionLen := len(option)
 
 	ss := make([]byte, length)

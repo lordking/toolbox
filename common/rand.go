@@ -11,7 +11,7 @@ func RandInt64(min, max int64) int64 {
 		return max
 	}
 
-	rand.Seed(time.Now().Unix())
+	rand.Seed(time.Now().UnixNano())
 	return rand.Int63n(max-min) + min
 }
 
@@ -21,7 +21,7 @@ func RandString(length int) []byte {
 	optionLen := len(option)
 
 	ss := make([]byte, length)
-	rand.Seed(time.Now().Unix())
+	rand.Seed(time.Now().UnixNano())
 	for i := 0; i < length; i++ {
 		n := rand.Intn(optionLen)
 		c := option[n]

@@ -7,37 +7,34 @@ import (
 	"github.com/lordking/toolbox/common"
 )
 
+//UpdateJsonWith 制作update内容
 func UpdateJsonWith(obj interface{}) (map[string]interface{}, error) {
 
-	var updateJson map[string]interface{}
-	updateJson = make(map[string]interface{})
+	var updateJSON map[string]interface{}
 
 	data, err := json.Marshal(obj)
-
-	if err != nil {
-		return nil, common.NewError(common.ErrCodeInternal, err.Error())
-	}
-	err = json.Unmarshal(data, &updateJson)
 	if err != nil {
 		return nil, common.NewError(common.ErrCodeInternal, err.Error())
 	}
 
-	for key, value := range updateJson {
+	json.Unmarshal(data, &updateJSON)
+
+	for key, value := range updateJSON {
 		if value != nil {
 
 			typeName := reflect.TypeOf(value).Name()
 			switch typeName {
 			case "string":
 				if value.(string) == "" {
-					delete(updateJson, key)
+					delete(updateJSON, key)
 				}
 				break
 			}
 
 		} else {
-			delete(updateJson, key)
+			delete(updateJSON, key)
 		}
 	}
 
-	return updateJson, err
+	return updateJSON, nil
 }

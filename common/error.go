@@ -8,7 +8,7 @@ import (
 
 const (
 	//ErrCodedParams 请求参数错误
-	ErrCodedParams = 403
+	ErrCodedParams = 400
 	//ErrCodeNotFound 没有发现
 	ErrCodeNotFound = 404
 	//ErrCodeInternal 内部错误

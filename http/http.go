@@ -10,7 +10,7 @@ import (
 
 type (
 
-	// HTTPConfig http配置
+	// Config http配置
 	Config struct {
 		Port    string `json:"port"`
 		SSLPort string `json:"ssl_port"`
@@ -18,7 +18,7 @@ type (
 		SSLKey  string `json:"ssl_key"`
 	}
 
-	//HTTPServer http服务对象
+	//Server http服务对象
 	Server struct {
 		Config *Config
 		Router *gin.Engine

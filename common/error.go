@@ -2,8 +2,7 @@ package common
 
 import (
 	"fmt"
-
-	"github.com/lordking/toolbox/log"
+	"log"
 )
 
 const (
@@ -34,14 +33,6 @@ func NewError(code int, message string) *Error {
 	}
 }
 
-//使用其他的错误对象生成新的自定义错误对象
-// func NewErrorWithOther(code int, err error) *Error {
-// 	return &Error{
-// 		Code:    code,
-// 		Message: err.Error(),
-// 	}
-// }
-
 //CheckFatal 打印失败类型错误，并因此停止程序运行
 func CheckFatal(err error) {
 	if err != nil {
@@ -52,6 +43,6 @@ func CheckFatal(err error) {
 //CheckError 打印普通错误
 func CheckError(err error) {
 	if err != nil {
-		log.Error(err.Error())
+		log.Print(err.Error())
 	}
 }

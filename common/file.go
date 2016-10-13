@@ -1,6 +1,5 @@
 package common
 
-// GetFileData 读取文件内容
 import (
 	"io/ioutil"
 )

@@ -1,8 +1,6 @@
 package log
 
 import (
-	"fmt"
-
 	"github.com/Sirupsen/logrus"
 	"github.com/lordking/toolbox/common"
 )
@@ -28,10 +26,9 @@ func SetLogDefaults(configPath string) {
 
 	//日志级别
 	level, _ := logrus.ParseLevel(defaults.Level)
-	fmt.Printf("level:%d\n", level)
 	logrus.SetLevel(level)
 
-	//日志文件
+	//输出日志文件
 	if defaults.Production {
 		logrus.SetFormatter(&logrus.JSONFormatter{
 			TimestampFormat: "2006-01-02 15:04:05.000",
@@ -44,26 +41,50 @@ func SetLogDefaults(configPath string) {
 	}
 }
 
-func Debug(format string, args ...interface{}) {
+func Debug(args ...interface{}) {
+	logrus.Debug(args...)
+}
+
+func Debugf(format string, args ...interface{}) {
 	logrus.Debugf(format, args...)
 }
 
-func Info(format string, args ...interface{}) {
+func Info(args ...interface{}) {
+	logrus.Info(args...)
+}
+
+func Infof(format string, args ...interface{}) {
 	logrus.Infof(format, args...)
 }
 
-func Warn(format string, args ...interface{}) {
+func Warn(args ...interface{}) {
+	logrus.Warn(args...)
+}
+
+func Warnf(format string, args ...interface{}) {
 	logrus.Warnf(format, args...)
 }
 
-func Error(format string, args ...interface{}) {
+func Error(args ...interface{}) {
+	logrus.Error(args...)
+}
+
+func Errorf(format string, args ...interface{}) {
 	logrus.Errorf(format, args...)
 }
 
-func Fatal(format string, args ...interface{}) {
+func Fatal(args ...interface{}) {
+	logrus.Fatal(args...)
+}
+
+func Fatalf(format string, args ...interface{}) {
 	logrus.Fatalf(format, args...)
 }
 
-func Panic(format string, args ...interface{}) {
+func Panic(args ...interface{}) {
+	logrus.Panic(args...)
+}
+
+func Panicf(format string, args ...interface{}) {
 	logrus.Panicf(format, args...)
 }

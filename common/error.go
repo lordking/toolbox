@@ -36,7 +36,7 @@ func NewError(code int, message string) *Error {
 //CheckFatal 打印失败类型错误，并因此停止程序运行
 func CheckFatal(err error) {
 	if err != nil {
-		log.Fatal(err.Error())
+		log.Fatal("fatal:", err.Error())
 	}
 }
 

@@ -92,25 +92,6 @@ func CreateServer(configPath string) *ClassicServer {
 	return &ClassicServer{httpServer.Router, httpServer}
 }
 
-//CreateServerWithSSL 创建支持SSL的http服务实例
-func CreateServerWithSSL(configPath, certPath, keyPath string) *ClassicServer {
-	data, err := common.ReadFileData(configPath)
-	defer common.CheckFatal(err)
-
-	config := &Config{}
-	err = common.ReadJSON(config, data)
-	defer common.CheckFatal(err)
-
-	config.SSLCert = certPath
-	config.SSLKey = keyPath
-	httpServer := NewServer(config)
-
-	return &ClassicServer{
-		httpServer.Router,
-		httpServer,
-	}
-}
-
 //BasicAuth 提供http认证接口
 func BasicAuth(authfn func(*gin.Context, string) error) gin.HandlerFunc {
 	return func(c *gin.Context) {

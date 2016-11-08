@@ -3,6 +3,7 @@ package log
 import (
 	"github.com/Sirupsen/logrus"
 	"github.com/lordking/toolbox/common"
+	"github.com/spf13/viper"
 )
 
 //SetLevel 设置日志级别
@@ -17,11 +18,17 @@ type (
 )
 
 //SetLogDefaults ...
-func SetLogDefaults(configPath string) {
+func SetLogDefaults(key string) {
+
+	var err error
 
 	//读取配置文件
 	defaults := new(Defaults)
-	err := common.ReadConfig(defaults, configPath)
+	if key == "" {
+		err = viper.Unmarshal(defaults)
+	} else {
+		err = viper.UnmarshalKey(key, defaults)
+	}
 	common.CheckFatal(err)
 
 	//日志级别

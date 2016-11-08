@@ -191,7 +191,7 @@ func (m *Redis) Receive(psc redis.PubSubConn) {
 			case redis.Message:
 				m.ReceiveQueue <- v.Data
 			case redis.Subscription:
-				log.Debug("%s subscribe %d", v.Channel, v.Count)
+				log.Debugf("subscribe: %s, count: %d", v.Channel, v.Count)
 			case error:
 				log.Error("Error:", v.Error())
 			}

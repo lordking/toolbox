@@ -31,8 +31,8 @@ type (
 	}
 )
 
-//RunServ 运行http服务
-func (h *Server) RunServ() {
+//RunServOnSSL 带SSL运行http服务
+func (h *Server) RunServOnSSL() {
 
 	//设置WEB中间件
 	h.Router.Use(gin.Recovery())
@@ -54,8 +54,8 @@ func (h *Server) RunServ() {
 
 }
 
-//RunServOnHTTP 运行http服务
-func (h *Server) RunServOnHTTP() {
+//RunServ 运行http服务
+func (h *Server) RunServ() {
 
 	//设置WEB中间件
 	h.Router.Use(gin.Recovery())

@@ -92,8 +92,8 @@ func CreateServer(configPath string) *ClassicServer {
 	return &ClassicServer{httpServer.Router, httpServer}
 }
 
-//CreateServer2 创建http服务实例
-func CreateServer2(configPath, certPath, keyPath string) *ClassicServer {
+//CreateServerWithSSL 创建支持SSL的http服务实例
+func CreateServerWithSSL(configPath, certPath, keyPath string) *ClassicServer {
 	data, err := common.ReadFileData(configPath)
 	defer common.CheckFatal(err)
 

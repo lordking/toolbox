@@ -4,7 +4,6 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/lordking/toolbox/common"
 	"github.com/lordking/toolbox/log"
 )
 
@@ -13,9 +12,9 @@ type (
 	// Config http配置
 	Config struct {
 		Port    string `json:"port"`
-		SSLPort string `json:"ssl_port"`
-		SSLCert string `json:"ssl_cert"`
-		SSLKey  string `json:"ssl_key"`
+		SSLPort string `json:"sslport"`
+		SSLCert string `json:"sslcert"`
+		SSLKey  string `json:"sslkey"`
 	}
 
 	//Server http服务对象
@@ -39,17 +38,17 @@ func (h *Server) RunServOnSSL() {
 	h.Router.Use(gin.Logger())
 
 	go func() {
-		log.Info("HTTP  on %s", h.Config.Port)
+		log.Infof("HTTP  on %s", h.Config.Port)
 
 		if err := http.ListenAndServe(h.Config.Port, h.Router); err != nil {
-			log.Fatal("http serve failure: %s", err.Error())
+			log.Fatalf("http serve failure: %s", err.Error())
 		}
 	}()
 
-	log.Info("HTTPS on %s", h.Config.SSLPort)
+	log.Infof("HTTPS on %s", h.Config.SSLPort)
 
 	if err := http.ListenAndServeTLS(h.Config.SSLPort, h.Config.SSLCert, h.Config.SSLKey, h.Router); err != nil {
-		log.Fatal("https serve failure: %s", err.Error())
+		log.Fatalf("https serve failure: %s", err.Error())
 	}
 
 }
@@ -61,10 +60,10 @@ func (h *Server) RunServ() {
 	h.Router.Use(gin.Recovery())
 	h.Router.Use(gin.Logger())
 
-	log.Info("HTTP  on %s", h.Config.Port)
+	log.Infof("HTTP  on %s", h.Config.Port)
 
 	if err := http.ListenAndServe(h.Config.Port, h.Router); err != nil {
-		log.Fatal("http serve failure: %s", err.Error())
+		log.Fatalf("http serve failure: %s", err.Error())
 	}
 
 }
@@ -77,18 +76,10 @@ func NewServer(config *Config) *Server {
 	}
 }
 
-//CreateServer 创建http服务实例
-func CreateServer(configPath string) *ClassicServer {
-
-	data, err := common.ReadFileData(configPath)
-	defer common.CheckFatal(err)
-
-	config := &Config{}
-	err = common.ReadJSON(config, data)
-	defer common.CheckFatal(err)
+//CreateServer 创建http服务实例。
+func CreateServer(config *Config) *ClassicServer {
 
 	httpServer := NewServer(config)
-
 	return &ClassicServer{httpServer.Router, httpServer}
 }
 

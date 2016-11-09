@@ -6,7 +6,10 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 
 	"github.com/lordking/toolbox/common"
+	"github.com/lordking/toolbox/database"
 )
+
+var _ database.Database = (*SQLite)(nil)
 
 type (
 	Config struct {

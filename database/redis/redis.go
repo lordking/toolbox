@@ -5,8 +5,11 @@ import (
 
 	"github.com/garyburd/redigo/redis"
 	"github.com/lordking/toolbox/common"
+	"github.com/lordking/toolbox/database"
 	"github.com/lordking/toolbox/log"
 )
+
+var _ database.Database = (*Redis)(nil)
 
 type (
 	Config struct {

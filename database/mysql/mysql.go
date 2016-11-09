@@ -6,7 +6,10 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 
 	"github.com/lordking/toolbox/common"
+	"github.com/lordking/toolbox/database"
 )
+
+var _ database.Database = (*MySQL)(nil)
 
 type (
 	Config struct {

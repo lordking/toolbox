@@ -6,7 +6,10 @@ import (
 	"gopkg.in/mgo.v2"
 
 	"github.com/lordking/toolbox/common"
+	"github.com/lordking/toolbox/database"
 )
+
+var _ database.Database = (*Mongo)(nil)
 
 const (
 	connTimeout = time.Second * 5

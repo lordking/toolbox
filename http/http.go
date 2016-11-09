@@ -11,10 +11,11 @@ type (
 
 	// Config http配置
 	Config struct {
-		Port    string `json:"port"`
-		SSLPort string `json:"sslport"`
-		SSLCert string `json:"sslcert"`
-		SSLKey  string `json:"sslkey"`
+		Production bool   `json:"production"`
+		Port       string `json:"port"`
+		SSLPort    string `json:"sslport"`
+		SSLCert    string `json:"sslcert"`
+		SSLKey     string `json:"sslkey"`
 	}
 
 	//Server http服务对象
@@ -78,6 +79,12 @@ func NewServer(config *Config) *Server {
 
 //CreateServer 创建http服务实例。
 func CreateServer(config *Config) *ClassicServer {
+
+	if config.Production {
+		gin.SetMode(gin.ReleaseMode)
+	} else {
+		gin.SetMode(gin.DebugMode)
+	}
 
 	httpServer := NewServer(config)
 	return &ClassicServer{httpServer.Router, httpServer}

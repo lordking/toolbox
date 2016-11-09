@@ -98,7 +98,7 @@ func (m *MySQL) Close() error {
 }
 
 func (m *MySQL) url() string {
-	return m.Config.Username + ":" + m.Config.Password + "@tcp(" + m.Config.Host + ":" + m.Config.Port + ")/" + m.Config.Database + "?charset=utf8"
+	return m.Config.Username + ":" + m.Config.Password + "@tcp(" + m.Config.Host + m.Config.Port + ")/" + m.Config.Database + "?charset=utf8"
 }
 
 func New() *MySQL {

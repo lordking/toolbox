@@ -26,6 +26,7 @@ func InitConfig(appName, cfgFile string) {
 		fmt.Println("Using config file:", viper.ConfigFileUsed())
 	} else {
 		fmt.Println("Read config file error: ", err)
+		os.Exit(0)
 	}
 }
 

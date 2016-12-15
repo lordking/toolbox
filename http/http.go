@@ -11,11 +11,11 @@ type (
 
 	// Config http配置
 	Config struct {
-		Production bool   `json:"production"`
-		Port       string `json:"port"`
-		SSLPort    string `json:"sslport"`
-		SSLCert    string `json:"sslcert"`
-		SSLKey     string `json:"sslkey"`
+		Production bool   `json:"production" env:"HTTP_PRODUCTION"`
+		Port       string `json:"port" env:"HTTP_PORT"`
+		SSLPort    string `json:"sslport" env:"HTTP_SSLPORT"`
+		SSLCert    string `json:"sslcert" env:"HTTP_SSLCERT"`
+		SSLKey     string `json:"sslkey" env:"HTTP_SSLKEY"`
 	}
 
 	//Server http服务对象

@@ -61,17 +61,17 @@ func RequestJSON(method, url string, data []byte, headers ...interface{}) ([]byt
 	return nil, common.NewError(resp.StatusCode, string(body))
 }
 
-//PostForm 以form方式向服务器发起请求
-func PostForm(url string, form url.Values, headers ...interface{}) ([]byte, error) {
+//以form方式向服务器发起请求
+func RequestForm(method, url string, form url.Values, headers ...interface{}) ([]byte, error) {
 
 	s := form.Encode()
 	data := []byte(s)
 
-	req, err := http.NewRequest("POST", url, bytes.NewReader(data))
+	req, err := http.NewRequest(method, url, bytes.NewReader(data))
 	if err != nil {
 		return nil, common.NewError(400, err.Error())
 	}
-	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Content-Type", "application//x-www-form-urlencoded")
 
 	count := len(headers)
 	for i := 0; i < count; i++ {

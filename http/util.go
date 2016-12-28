@@ -2,6 +2,7 @@ package http
 
 import (
 	"bytes"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -62,39 +63,51 @@ func RequestJSON(method, url string, data []byte, headers ...interface{}) ([]byt
 }
 
 //以form方式向服务器发起请求
-func RequestForm(method, url string, form url.Values, headers ...interface{}) ([]byte, error) {
-
-	s := form.Encode()
-	data := []byte(s)
-
-	req, err := http.NewRequest(method, url, bytes.NewReader(data))
-	if err != nil {
-		return nil, common.NewError(400, err.Error())
-	}
-	req.Header.Set("Content-Type", "application//x-www-form-urlencoded")
-
-	count := len(headers)
-	for i := 0; i < count; i++ {
-		header := headers[i].(Header)
-		req.Header.Add(header.Key, header.Value)
-	}
+func PostForm(url string, form url.Values) ([]byte, error) {
 
 	client := &http.Client{}
-	resp, err := client.Do(req)
+	resp, err := client.PostForm(url, form)
 	if err != nil {
-		return nil, common.NewError(400, err.Error())
+		msg := fmt.Sprintf("Request error: %s", err)
+		return nil, common.NewError(400, msg)
 	}
 
 	defer resp.Body.Close()
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return nil, common.NewError(400, err.Error())
+		msg := fmt.Sprintf("Request error: %s", err)
+		return nil, common.NewError(400, msg)
 	}
 
-	if resp.StatusCode == 200 {
-		return body, nil
+	if resp.StatusCode != 200 {
+		return nil, common.NewError(resp.StatusCode, string(body))
 	}
 
-	return nil, common.NewError(resp.StatusCode, string(body))
+	return body, nil
+}
+
+//以get方式向服务器发起请求
+func GetForm(url string) ([]byte, error) {
+
+	client := &http.Client{}
+	resp, err := client.Get(url)
+	if err != nil {
+		msg := fmt.Sprintf("Request error: %s", err)
+		return nil, common.NewError(400, msg)
+	}
+
+	defer resp.Body.Close()
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		msg := fmt.Sprintf("Request error: %s", err)
+		return nil, common.NewError(400, msg)
+	}
+
+	if resp.StatusCode != 200 {
+		return nil, common.NewError(resp.StatusCode, string(body))
+	}
+
+	return body, nil
 }

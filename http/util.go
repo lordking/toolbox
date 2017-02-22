@@ -21,9 +21,9 @@ type Header struct {
 func JSONResponse(c *gin.Context, status int, obj interface{}) {
 
 	if status == 200 {
-		c.JSON(200, gin.H{"status": 200, "result": obj})
+		c.JSON(200, obj)
 	} else {
-		c.JSON(status, gin.H{"status": status, "error": obj})
+		c.JSON(status, gin.H{"error": obj})
 	}
 }
 

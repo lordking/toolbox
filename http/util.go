@@ -21,7 +21,15 @@ type Header struct {
 func JSONResponse(c *gin.Context, status int, obj interface{}) {
 
 	if status == 200 {
-		c.JSON(200, obj)
+
+		switch obj.(type) {
+		case string:
+			c.JSON(status, gin.H{"result": obj})
+			break
+		default:
+			c.JSON(200, obj)
+		}
+
 	} else {
 		c.JSON(status, gin.H{"error": obj})
 	}
